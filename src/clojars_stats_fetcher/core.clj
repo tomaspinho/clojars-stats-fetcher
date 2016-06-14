@@ -34,9 +34,8 @@
     (spit filename "name,homepage,description,downloads\n")
     (println "Downloaded list, processing" (count package-list) "elements.")
 
-    (let [responses (map-indexed
-      (mk-fetch-pkg-data 100 (count package-list))
-      package-list)]
+    (let [responses (map-indexed (mk-fetch-pkg-data 100 (count package-list))
+                                 package-list)]
 
       (doall (for [r responses]
         (do
@@ -48,10 +47,9 @@
                                           (j "jar_name"))
                                           (str (j "group_name") "/" (j "jar_name"))
                             ","
-                            (j "homepage")
+                            "\"" (j "homepage") "\""
                             ","
-                            (j "description")
+                            "\"" (j "description") "\""
                             ","
                             (j "downloads")
-                            "\n") :append true))))))
-)))
+                            "\n") :append true)))))))))
