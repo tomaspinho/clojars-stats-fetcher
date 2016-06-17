@@ -27,6 +27,14 @@
              body))
     ))
 
+(defn fix-csv-special-chars
+  [str]
+  (if (not (nil? str))
+      (clojure.string/replace
+        (clojure.string/replace str #"(\")" "\"\"")
+        #"\n"
+        "\\\\n")))
+
 (defn -main [& args]
   (let [filename (if (nil? (first args)) "out.csv" (first args))
         package-list (deps-to-pkgs-lst (download-clj-depedencies))]
@@ -49,7 +57,7 @@
                             ","
                             "\"" (j "homepage") "\""
                             ","
-                            "\"" (j "description") "\""
+                            "\"" (fix-csv-special-chars (j "description")) "\""
                             ","
                             (j "downloads")
                             "\n") :append true)))))))))
