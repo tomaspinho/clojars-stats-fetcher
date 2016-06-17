@@ -35,6 +35,19 @@
         #"\n"
         "\\\\n")))
 
+(defn json-to-csv
+  [j]
+  (str "\"" (if (= (j "jar_name") (j "group_name"))
+                (j "jar_name")
+                (str (j "group_name") "/" (j "jar_name"))) "\""
+       ","
+       "\"" (j "homepage") "\""
+       ","
+       "\"" (fix-csv-special-chars (j "description")) "\""
+       ","
+       (j "downloads")
+       "\n"))
+
 (defn -main [& args]
   (let [filename (if (nil? (first args)) "out.csv" (first args))
         package-list (deps-to-pkgs-lst (download-clj-depedencies))]
@@ -47,17 +60,8 @@
 
       (doall (for [r responses]
         (do
-        (let [j (if (not= r "")
+            (let [j (if (not= r "")
                     (json/read-str r)
                     false)]
-        (if j
-            (spit filename (str (if (not= (j "jar_name") (j "group_name"))
-                                          (j "jar_name"))
-                                          (str (j "group_name") "/" (j "jar_name"))
-                            ","
-                            "\"" (j "homepage") "\""
-                            ","
-                            "\"" (fix-csv-special-chars (j "description")) "\""
-                            ","
-                            (j "downloads")
-                            "\n") :append true)))))))))
+                 (if j
+                     (spit filename (json-to-csv j) :append true)))))))))
