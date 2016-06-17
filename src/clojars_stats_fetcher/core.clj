@@ -13,14 +13,16 @@
   "This function grabs a raw clj deps list in raw format and parses it, removing
   duplicates and returning a list of unique packages."
   [deps]
-  (distinct (map #((re-matches #"^\[([a-zA-Z0-9/.\-_]+) .*$" %) 1) (str/split deps #"\n"))))
+  (distinct (map #((re-matches #"^\[([a-zA-Z0-9/.\-_]+) .*$" %) 1)
+                 (str/split deps #"\n"))))
 
 (defn mk-fetch-pkg-data
-  "This function returns a function that downloads a given package's metadata and returns it in plaintext"
+  "This function returns a function that downloads a given package's metadata
+  and returns it in plaintext"
   [print-each num-pkgs]
   (fn fetch-pkg-data
     [i pkg]
-    (if (= (rem i print-each) 0)
+    (when (= (rem i print-each) 0)
         (println "Downloaded data for" i "/" num-pkgs))
     (let [uri (str "https://clojars.org/api/artifacts/" (str/lower-case pkg))
          {:keys [body error]} @(http/get uri)]
@@ -30,7 +32,8 @@
     ))
 
 (defn fix-csv-special-chars
-  "This function escapes special characters (\"\\n) from strings to be included in CSV files."
+  "This function escapes special characters (\"\\n) from strings to be included
+  in CSV files."
   [str]
   (if (not (nil? str))
       (clojure.string/replace
@@ -63,10 +66,9 @@
     (let [responses (map-indexed (mk-fetch-pkg-data 100 (count package-list))
                                  package-list)]
 
-      (doall (for [r responses]
-        (do
-            (let [j (if (not= r "")
-                    (json/read-str r)
-                    false)]
-                 (if j
-                     (spit filename (json-to-csv j) :append true)))))))))
+         (doall (for [r responses]
+                     (let [j (if (not= r "")
+                                 (json/read-str r)
+                                 false)]
+                          (if j
+                              (spit filename (json-to-csv j) :append true))))))))
